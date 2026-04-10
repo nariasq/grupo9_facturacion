@@ -1,0 +1,45 @@
+// ============================================================
+// frontend/src/context/AuthContext.jsx
+// Manejo global de sesión de usuario
+// ============================================================
+import { createContext, useContext, useState, useEffect } from 'react';
+
+const AuthContext = createContext(null);
+
+export const AuthProvider = ({ children }) => {
+  const [usuario, setUsuario] = useState(null);
+  const [cargando, setCargando] = useState(true);
+
+  // Restaurar sesión al cargar la app
+  useEffect(() => {
+    const token   = localStorage.getItem('token');
+    const usuarioGuardado = localStorage.getItem('usuario');
+
+    if (token && usuarioGuardado) {
+      setUsuario(JSON.parse(usuarioGuardado));
+    }
+    setCargando(false);
+  }, []);
+
+  const login = (token, datosUsuario) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('usuario', JSON.stringify(datosUsuario));
+    setUsuario(datosUsuario);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('usuario');
+    setUsuario(null);
+  };
+
+  if (cargando) return <div>Cargando...</div>;
+
+  return (
+    <AuthContext.Provider value={{ usuario, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => useContext(AuthContext);
